@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Word Extractor</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        p {
+            font-size: 18px;
+        }
+        .tooltip {
+            position: absolute;
+            background-color: #f9f9f9;
+            border: 1px solid #ccc;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <p id="text">Select any word in this paragraph to extract it.</p>
+
+    <script>
+        document.addEventListener('mouseup', function(event) {
+            let selectedText = window.getSelection().toString().trim();
+            if (selectedText) {
+                getWordMeaning(selectedText).then(meaning => {
+                    showTooltip(event.pageX, event.pageY, meaning);
+                });
+            }
+        });
+
+        async function getWordMeaning(word) {
+            try {
+                const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
+                
+                if (!response.ok) {
+                    throw new Error(`Word not found: ${word}`);
+                }
+
+                const data = await response.json();
+                const meaning = data[0]?.meanings[0]?.definitions[0]?.definition;
+
+                return meaning ? `The meaning of "${word}" is: ${meaning}` : `No meaning found for "${word}".`;
+            } catch (error) {
+                return `Error: ${error.message}`;
+            }
+        }
+
+        function showTooltip(x, y, text) {
+            let tooltip = document.createElement('div');
+            tooltip.className = 'tooltip';
+            tooltip.textContent = text;
+            document.body.appendChild(tooltip);
+
+            tooltip.style.left = `${x + 10}px`;
+            tooltip.style.top = `${y + 10}px`;
+
+            setTimeout(() => {
+                tooltip.remove();
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
